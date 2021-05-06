@@ -41,14 +41,14 @@ function launch(manager::Union{PBSManager, SGEManager, QRSHManager},
           for i in 1:np
               config = WorkerConfig()
               config.io, io_proc = stream_proc[i]
-              config.userdata = Dict{Symbol, Any}(:task => i, 
+              config.userdata = Dict{Symbol, Any}(:task => i,
                                                   :process => io_proc)
               push!(instances_arr, config)
               notify(c)
           end
 
         else  # PBS & SGE
-            cmd = `cd $dir '&&' $exename $exeflags $(worker_arg())`
+            cmd = `cd $dir '&&' $(split(exename)) $exeflags $(worker_arg())`
             qsub_cmd = pipeline(`echo $(Base.shell_escape(cmd))` , (isPBS ?
                     `qsub -N $jobname -wd $wd -j oe -k o -t 1-$np $queue` :
                     `qsub -N $jobname -wd $wd -terse -j y -R y -t 1-$np -V $queue`))
