@@ -80,6 +80,7 @@ function launch(manager::Union{PBSManager, SGEManager, QRSHManager},
 
                 config = WorkerConfig()
 
+                #config.io = open(detach(cmd))
                 config.io = open(detach(cmd))
 
                 config.userdata = Dict{Symbol, Any}(:job=>id, :task=>i, :iofile=>fname)
