@@ -98,12 +98,15 @@ end
 
 function manage(manager::Union{PBSManager, SGEManager, QRSHManager},
         id::Int64, config::WorkerConfig, op::Symbol)
+    if op == :finalize
+        _cleanup(config)
+    elseif op == :interrupt
+        kill(manager, id, config)
+    end
 end
 
-function kill(manager::Union{PBSManager, SGEManager, QRSHManager}, id::Int64, config::WorkerConfig)
-    remotecall(exit,id)
+function _cleanup(config::WorkerConfig)
     close(config.io)
-
     if isa(manager, QRSHManager)
       kill(config.userdata[:process],15)
       return
@@ -112,6 +115,12 @@ function kill(manager::Union{PBSManager, SGEManager, QRSHManager}, id::Int64, co
     if isfile(config.userdata[:iofile])
         rm(config.userdata[:iofile])
     end
+end
+
+
+function kill(manager::Union{PBSManager, SGEManager, QRSHManager}, id::Int64, config::WorkerConfig)
+    remotecall(exit,id)
+    _cleanup(config)
 end
 
 addprocs_pbs(np::Integer; qsub_flags=``, wd=ENV["HOME"], kwargs...) = addprocs(PBSManager(np, qsub_flags, wd); kwargs...)
